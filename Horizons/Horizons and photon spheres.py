@@ -1,4 +1,4 @@
-# Import necessary libraries
+#libraries
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import fsolve
@@ -6,24 +6,36 @@ from sympy import symbols, solve, Eq, lambdify
 import matplotlib.lines as mlines
 from matplotlib.colors import LinearSegmentedColormap
 
-# Define symbols
+#######################################################################################################################
+
+# Defining symbols
 q, r, d = symbols('q r d')
 
-# Assign values to m and n
+#######################################################################################################################
+
+# Assigning values
 m = 1
 n = 1
 
-# Define the equation with m=1 and n=1
+#######################################################################################################################
+
+# Defining the horizon equation
 equation = Eq(1 - (m / r ** (d - 3)) * (1 + (m ** (3 / n - 2) * q ** (d - 2)) / r ** ((3 * (d - 2)) / (2 * n))) ** (
         (-2 * n) / 3 * ((d - 1) / (d - 2))), 0)
 
-# Solve the equation for q in terms of r and d
+#######################################################################################################################
+
+# Solving the equation for q in terms of r and d
 q_solution = solve(equation, q)[0]
 
-# Convert the solution to a numerical function
+#######################################################################################################################
+
+# Converting the solution to a numerical function
 q_func = lambdify((r, d), q_solution, modules='numpy')
 
-# Define the expression and its derivative numerically
+#######################################################################################################################
+
+# Defining the expression and its derivative numerically
 def expr(r, q, d, n):
     return 1 / r ** 2 * (1 - 1 / r ** (d - 3) * (1 + q ** (d - 2) / r ** ((3 * (d - 2)) / (2 * n))) ** (
             (-2 * n * (d - 1)) / (3 * (d - 2))))
@@ -32,6 +44,7 @@ def dexpr_num(r, q, d, n):
     h = 1e-5
     return (expr(r + h, q, d, n) - expr(r, q, d, n)) / h
 
+#######################################################################################################################
 
 # Improved function to find q with better initial guesses and handling numerical issues
 def find_q(d_val, r_val, n_val, q_guess=1):
@@ -42,7 +55,9 @@ def find_q(d_val, r_val, n_val, q_guess=1):
     else:
         return np.nan
 
-# Define the q formula directly
+#######################################################################################################################
+
+# Defining the q formula directly
 def q_formula(d):
     return ((d - 3) / 2) ** (1 / (d - 2)) * (2 / (d - 1)) ** ((d - 1) / ((d - 3) * (d - 2)))
 
@@ -71,12 +86,15 @@ def find_r_min(d):
         print(f"Error finding minimum r for d={d}: {e}")
         return np.nan
 
-# Generate a range of r values for each d
-d_vals = range(4, 12)  # Ensure d=5 is included
+#######################################################################################################################
+
+# Generating a range of r values for each d
+d_vals = range(4, 12) 
 num_r_points = 400
 
+#######################################################################################################################
 
-# Alternative with specific hex codes for more control:
+# Custom coloring
 color_sequence_hex = [
     '#000000',  # Black
     '#8800C7',  # purple
@@ -88,15 +106,18 @@ color_sequence_hex = [
     '#FF3838',  # Red
 ]
 
-# Create custom colormap
 custom_cmap = LinearSegmentedColormap.from_list('custom_8color', color_sequence_hex)
-# Define color map to ensure the same color for the same d value
+
 colors = custom_cmap(np.linspace(0, 1, len(d_vals)))
 
-# Prepare the plot
+#######################################################################################################################
+
+# Preparing the plot
 plt.figure(figsize=(12, 8))
 
-# Compute and plot q for each d using the symbolic method
+#######################################################################################################################
+
+# Computing and plotting q for each d using the symbolic method
 for idx, d_val in enumerate(d_vals):
     r_values_full = np.linspace(0.00001, 1, num_r_points)  # Full range for solid curves
     q_values_sympy = q_func(r_values_full, d_val)
@@ -106,12 +127,14 @@ for idx, d_val in enumerate(d_vals):
 # Initialize lists to store minimum r values for dashed line
 dashed_r_min = []
 
-# Compute and plot q for each d using the numerical method
+#######################################################################################################################
+
+# Computing and plottng q for each d using the numerical method
 for idx, d_val in enumerate(d_vals):
     q_threshold = q_formula(d_val)
     r_last = r_last_point(d_val)
 
-    # Generate r values based on the d values
+    # Generating r values based on the d values
     if d_val == 5:
         r_values_num = np.linspace(0.74, r_last, num_r_points)
     elif d_val == 9:
@@ -132,7 +155,7 @@ for idx, d_val in enumerate(d_vals):
         except:
             q_values_num.append(np.nan)
 
-    # Separate r and q values for above and below threshold
+    # Separating r and q values for above and below threshold
     r_values_above = [r for r, q in zip(r_values_num, q_values_num) if q > q_threshold]
     q_values_above = [q for q in q_values_num if q > q_threshold]
     r_values_below = [r for r, q in zip(r_values_num, q_values_num) if q <= q_threshold]
@@ -164,18 +187,20 @@ for idx, d_val in enumerate(d_vals):
         plt.scatter(max_r_dis, max_q_dis, color=colors[idx], s=50, marker='o', zorder=5)  # Dot for maximum q_dis
         plt.text(max_r_dis, max_q_dis + 0.01, r'$\tilde{q}_{{deg}}$', color=colors[idx], ha='right', fontsize=8)
 
+#######################################################################################################################
 
-
-# Customize the plot
+# Labeling axes in the plot
 plt.xlabel(r'$\tilde{r}$')
 plt.ylabel(r'$\tilde{q}$')
 plt.title('n=1 (Hayward)')
 
-# Create the first legend (for d values)
+#######################################################################################################################
+
+# Creating the legend (for d values)
 legend1 = plt.legend(loc='upper right')
 plt.gca().add_artist(legend1)
 
-# Create the second legend (for line styles)
+# Creating the second legend (for line styles)
 solid_line = mlines.Line2D([], [], color='black', linestyle='-', label='Horizon')
 dashed_line = mlines.Line2D([], [], color='black', linestyle='dotted', label='COPS')
 dashdot_line = mlines.Line2D([], [], color='black', linestyle='--', dashes=(6, 3), label='BHPS')
@@ -183,6 +208,9 @@ legend2 = plt.legend(handles=[solid_line, dashed_line, dashdot_line], loc='upper
 
 plt.grid(True, zorder=0)
 
+#######################################################################################################################
+
 # Save and show the plot
 plt.savefig('HVeffn1.eps', format='eps', bbox_inches='tight', pad_inches=0)
 plt.show()
+
