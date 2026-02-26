@@ -1,9 +1,11 @@
 # d-dimReg
 The codes used in the article A class of d-dimensional regular black holes: Shadows, Thermodynamics and Gravitational collapse
 
-REFERENCE PAPERS
+REFERENCE PAPER
 
 A class of d-dimensional regular black holes: Shadows, Thermodynamics and Gravitational collapse
+
+The following BibTeX entry is for citing this work in your publications:
 
 
 ```bibtex
